@@ -1,5 +1,11 @@
 # Changelog
  
+## [1.0.0+build.4] - 2026-05-10
+ 
+### Added
+- Custom GameRule Category: Created the "Instant Gratification Collection" category in the GameRules screen to improve visibility and organization.
+- Localized all gamerule names and descriptions in the UI.
+ 
 ## [1.0.0+build.3] - 2026-05-10
  
 ### Changed

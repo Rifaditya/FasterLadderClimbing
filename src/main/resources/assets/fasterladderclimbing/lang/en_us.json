@@ -1,4 +1,5 @@
 {
-  "gamerule.ig_climbing_speed_multiplier": "Climbing Speed Multiplier",
-  "gamerule.ig_climbing_speed_multiplier.description": "Scales the movement speed of entities on ladders and vines. Integrated safety caps prevent uncontrollable launching at the top."
+  "gamerule.category.fasterladderclimbing.instant_gratification": "Instant Gratification Collection",
+  "gamerule.fasterladderclimbing.climbing_speed_multiplier": "Climbing Speed Multiplier",
+  "gamerule.fasterladderclimbing.climbing_speed_multiplier.description": "Scales the movement speed of entities on ladders and vines. 100 is Vanilla speed, 200 is twice as fast. Integrated safety caps prevent uncontrollable launching at the top. Default: 100."
 }
