@@ -1,5 +1,10 @@
 # Changelog
  
+## [1.0.0+build.7] - 2026-05-10
+ 
+### Fixed
+- Fixed "Cannot use ladder" bug: Added safety fallbacks to the speed multiplier logic. If the GameRule value is 0 or fails to load, the mod now defaults to vanilla speed (100%) instead of freezing the player's movement on climbables.
+ 
 ## [1.0.0+build.6] - 2026-05-10
  
 ### Fixed

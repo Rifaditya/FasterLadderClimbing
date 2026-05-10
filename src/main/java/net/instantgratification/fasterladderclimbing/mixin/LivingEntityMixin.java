@@ -31,10 +31,7 @@ public abstract class LivingEntityMixin {
      */
     @Redirect(method = "handleRelativeFrictionAndCalculateMovement", at = @At(value = "NEW", target = "(DDD)Lnet/minecraft/world/phys/Vec3;", ordinal = 0))
     private Vec3 fasterladderclimbing$scaleAscendingSpeed(double x, double y, double z) {
-        LivingEntity entity = (LivingEntity) (Object) this;
-        int multiplierPercent = DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
-        
-        double multiplier = multiplierPercent / 100.0;
+        double multiplier = fasterladderclimbing$getMultiplier();
         double scaledY = 0.2 * multiplier;
         
         // Safety Cap: Prevent shooting into the sky (max 0.8 blocks/tick)
@@ -46,7 +43,19 @@ public abstract class LivingEntityMixin {
     @Unique
     private double fasterladderclimbing$getMultiplier() {
         LivingEntity entity = (LivingEntity) (Object) this;
-        return DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER) / 100.0;
+        int multiplierPercent = 100;
+        try {
+            multiplierPercent = DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
+        } catch (Exception ignored) {
+            // Fallback to vanilla if rule system is not yet ready
+        }
+        
+        // Safety: Never allow a multiplier of 0 or less, as it freezes the player
+        if (multiplierPercent <= 0) {
+            multiplierPercent = 100;
+        }
+        
+        return multiplierPercent / 100.0;
     }
  
     /**
