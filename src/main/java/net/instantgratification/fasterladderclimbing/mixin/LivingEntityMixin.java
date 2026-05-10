@@ -1,9 +1,12 @@
 package net.instantgratification.fasterladderclimbing.mixin;
  
 import net.instantgratification.fasterladderclimbing.FasterLadderClimbingFabric;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import net.dasik.social.api.gamerule.DynamicGameRuleManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,21 +16,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin {
+public abstract class LivingEntityMixin extends Entity {
+ 
+    public LivingEntityMixin(EntityType<?> type, Level level) {
+        super(type, level);
+    }
  
     @Shadow public abstract boolean onClimbable();
-    @Shadow public abstract float getXRot();
-    @Shadow public abstract void move(MoverType type, Vec3 movement);
-    @Shadow public abstract boolean isSpectator();
-    @Shadow public abstract Vec3 getDeltaMovement();
-    @Shadow public abstract void setDeltaMovement(Vec3 movement);
- 
     @Shadow protected float zza; // Forward movement
  
     /**
      * Optimized "Brute Force" Movement Logic (v26.1.2 Compatible).
-     * This avoids complex bytecode redirection and instead applies a reliable boost 
-     * during the entity tick, similar to the reference mod.
+     * By extending Entity, we gain access to getXRot() and other base methods 
+     * without needing fragile @Shadow definitions that cause crashes.
      */
     @Inject(method = "tick", at = @At("TAIL"))
     private void fasterladderclimbing$applyLadderBoost(CallbackInfo ci) {
@@ -38,8 +39,7 @@ public abstract class LivingEntityMixin {
             return;
         }
  
-        // 2. Movement check: Only boost if the entity is actually trying to move
-        // This prevents sliding up/down just by looking if you aren't pressing keys.
+        // 2. Movement check: Only boost if the entity is actually trying to move forward
         if (Math.abs(this.zza) < 0.1f) {
             return;
         }
@@ -48,6 +48,7 @@ public abstract class LivingEntityMixin {
         if (multiplier <= 1.0) return;
  
         // 3. Directional Logic (Gradual Look-based climbing)
+        // We can now call getXRot() directly because we extend Entity
         float pitch = this.getXRot();
         double boostY = 0;
         double extraSpeed = 0.2 * (multiplier - 1.0);

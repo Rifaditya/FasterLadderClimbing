@@ -1,5 +1,10 @@
 # Changelog
  
+## [1.0.0+build.10] - 2026-05-10
+ 
+### Fixed
+- **Startup Crash (InvalidMixinException)**: Fixed a critical crash where the game failed to locate the `getXRot` method during startup. The Mixin now correctly uses inheritance to access base entity methods, ensuring compatibility with all 26.1.2 environments.
+ 
 ## [1.0.0+build.9] - 2026-05-10
  
 ### Added
