@@ -15,7 +15,7 @@ public class FasterLadderClimbingFabric implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
  
     public static final GameRuleCategory CATEGORY = DynamicGameRuleManager.registerCategory(
-            Identifier.fromNamespaceAndPath(MOD_ID, "instant_gratification")
+            Identifier.fromNamespaceAndPath(MOD_ID, "climbing")
     );
  
     public static GameRule<Integer> CLIMBING_SPEED_MULTIPLIER;

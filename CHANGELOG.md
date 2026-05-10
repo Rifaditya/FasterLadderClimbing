@@ -1,5 +1,10 @@
 # Changelog
  
+## [1.0.0+build.5] - 2026-05-10
+ 
+### Changed
+- Renamed GameRule Category: Changed from "Instant Gratification Collection" to **"Faster Ladder Climbing"** for better clarity and consistency with other mods.
+ 
 ## [1.0.0+build.4] - 2026-05-10
  
 ### Added
