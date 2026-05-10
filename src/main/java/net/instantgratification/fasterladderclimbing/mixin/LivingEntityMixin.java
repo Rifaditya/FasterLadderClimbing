@@ -2,42 +2,81 @@ package net.instantgratification.fasterladderclimbing.mixin;
  
 import net.instantgratification.fasterladderclimbing.FasterLadderClimbingFabric;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec3;
 import net.dasik.social.api.gamerule.DynamicGameRuleManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
  
     @Shadow public abstract boolean onClimbable();
+    @Shadow public abstract float getXRot();
+    @Shadow public abstract void move(MoverType type, Vec3 movement);
+    @Shadow public abstract boolean isSpectator();
+    @Shadow public abstract Vec3 getDeltaMovement();
+    @Shadow public abstract void setDeltaMovement(Vec3 movement);
  
-    @Unique
-    private boolean fasterladderclimbing$wasOnClimbableLastTick = false;
- 
-    // Verified against: LivingEntity.java (26.1.2 Release)
+    @Shadow protected float zza; // Forward movement
  
     /**
-     * Scales the climbing speed when jumping or colliding with a ladder.
-     * Original constant: 0.2
+     * Optimized "Brute Force" Movement Logic (v26.1.2 Compatible).
+     * This avoids complex bytecode redirection and instead applies a reliable boost 
+     * during the entity tick, similar to the reference mod.
      */
-    @Redirect(method = "handleRelativeFrictionAndCalculateMovement", at = @At(value = "NEW", target = "(DDD)Lnet/minecraft/world/phys/Vec3;", ordinal = 0))
-    private Vec3 fasterladderclimbing$scaleAscendingSpeed(double x, double y, double z) {
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void fasterladderclimbing$applyLadderBoost(CallbackInfo ci) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        
+        // 1. Eligibility Check
+        if (!this.onClimbable() || this.isSpectator() || entity.isPassenger()) {
+            return;
+        }
+ 
+        // 2. Movement check: Only boost if the entity is actually trying to move
+        // This prevents sliding up/down just by looking if you aren't pressing keys.
+        if (Math.abs(this.zza) < 0.1f) {
+            return;
+        }
+ 
         double multiplier = fasterladderclimbing$getMultiplier();
-        double scaledY = 0.2 * multiplier;
-        
-        // Safety Cap: Prevent shooting into the sky (max 0.8 blocks/tick)
-        scaledY = Math.min(scaledY, 0.8);
-        
-        return new Vec3(x, scaledY, z);
+        if (multiplier <= 1.0) return;
+ 
+        // 3. Directional Logic (Gradual Look-based climbing)
+        float pitch = this.getXRot();
+        double boostY = 0;
+        double extraSpeed = 0.2 * (multiplier - 1.0);
+ 
+        // We use a gradual scale: the steeper the angle, the faster the boost.
+        // Threshold: 15 degrees. Max intensity at 90 degrees.
+        float absPitch = Math.abs(pitch);
+        if (absPitch > 15.0f && this.zza > 0) {
+            float intensity = (absPitch - 15.0f) / (90.0f - 15.0f);
+            intensity = Math.min(intensity, 1.0f); // Cap at 1.0
+            
+            if (pitch < 0) {
+                // Looking Up -> Ascend
+                boostY = extraSpeed * intensity;
+            } else {
+                // Looking Down -> Descend
+                boostY = -extraSpeed * intensity;
+            }
+        }
+ 
+        // 4. Apply the movement
+        if (boostY != 0) {
+            this.move(MoverType.SELF, new Vec3(0, boostY, 0));
+            
+            Vec3 currentVelocity = this.getDeltaMovement();
+            if (boostY > 0 && currentVelocity.y < 0) {
+                this.setDeltaMovement(new Vec3(currentVelocity.x, 0, currentVelocity.z));
+            }
+        }
     }
  
     @Unique
@@ -46,53 +85,9 @@ public abstract class LivingEntityMixin {
         int multiplierPercent = 100;
         try {
             multiplierPercent = DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
-        } catch (Exception ignored) {
-            // Fallback to vanilla if rule system is not yet ready
-        }
+        } catch (Exception ignored) {}
         
-        // Safety: Never allow a multiplier of 0 or less, as it freezes the player
-        if (multiplierPercent <= 0) {
-            multiplierPercent = 100;
-        }
-        
+        if (multiplierPercent <= 0) multiplierPercent = 100;
         return multiplierPercent / 100.0;
-    }
- 
-    /**
-     * Scales the horizontal clamping in handleOnClimbable.
-     */
-    @Redirect(method = "handleOnClimbable", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(DDD)D"))
-    private double fasterladderclimbing$redirectHorizontalClamp(double value, double min, double max) {
-        double multiplier = fasterladderclimbing$getMultiplier();
-        return net.minecraft.util.Mth.clamp(value, min * multiplier, max * multiplier);
-    }
- 
-    /**
-     * Scales the vertical downward clamping (sliding speed) in handleOnClimbable.
-     */
-    @Redirect(method = "handleOnClimbable", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(DD)D"))
-    private double fasterladderclimbing$redirectVerticalMax(double a, double b) {
-        // b is the -0.15 constant
-        double multiplier = fasterladderclimbing$getMultiplier();
-        return Math.max(a, b * multiplier);
-    }
- 
-    /**
-     * Implements the "Peak Clamp" to ensure speed only works while on ladder.
-     * Prevents momentum carry-over after leaving the ladder.
-     */
-    @Inject(method = "handleRelativeFrictionAndCalculateMovement", at = @At("RETURN"), cancellable = true)
-    private void fasterladderclimbing$applyPeakClamp(Vec3 input, float friction, CallbackInfoReturnable<Vec3> cir) {
-        boolean currentlyOnClimbable = this.onClimbable();
-        Vec3 result = cir.getReturnValue();
- 
-        if (!currentlyOnClimbable && fasterladderclimbing$wasOnClimbableLastTick) {
-            // We just left the ladder. If our velocity is high, damp it immediately to prevent launching.
-            if (result.y > 0.2) {
-                cir.setReturnValue(new Vec3(result.x, 0.2, result.z));
-            }
-        }
- 
-        fasterladderclimbing$wasOnClimbableLastTick = currentlyOnClimbable;
     }
 }

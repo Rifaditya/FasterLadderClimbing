@@ -1,5 +1,16 @@
 # Changelog
  
+## [1.0.0+build.9] - 2026-05-10
+ 
+### Added
+- **Gradual Speed Scaling**: The extra climbing speed now scales based on how much you look up or down. Looking straight ahead gives a small boost, while looking straight up/down gives the full multiplier.
+ 
+## [1.0.0+build.8] - 2026-05-10
+ 
+### Added
+- **Look-to-Climb Feature**: You can now climb even faster by looking up or descend faster by looking down while moving forward on a ladder.
+- **Enhanced Stability**: Switched to a robust "Direct Movement" approach. This avoids fragile bytecode edits and ensures the mod works perfectly in all 26.1.2 environments.
+ 
 ## [1.0.0+build.7] - 2026-05-10
  
 ### Fixed
