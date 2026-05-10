@@ -4,6 +4,7 @@ import net.instantgratification.fasterladderclimbing.FasterLadderClimbingFabric;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
+import net.dasik.social.api.gamerule.DynamicGameRuleManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -31,10 +32,7 @@ public abstract class LivingEntityMixin {
     @Redirect(method = "handleRelativeFrictionAndCalculateMovement", at = @At(value = "NEW", target = "(DDD)Lnet/minecraft/world/phys/Vec3;", ordinal = 0))
     private Vec3 fasterladderclimbing$scaleAscendingSpeed(double x, double y, double z) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        int multiplierPercent = 100;
-        if (entity.level() instanceof ServerLevel serverLevel) {
-            multiplierPercent = serverLevel.getGameRules().get(FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
-        }
+        int multiplierPercent = DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
         
         double multiplier = multiplierPercent / 100.0;
         double scaledY = 0.2 * multiplier;
@@ -48,10 +46,7 @@ public abstract class LivingEntityMixin {
     @Unique
     private double fasterladderclimbing$getMultiplier() {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (entity.level() instanceof ServerLevel serverLevel) {
-            return serverLevel.getGameRules().get(FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER) / 100.0;
-        }
-        return 1.0;
+        return DynamicGameRuleManager.getInt(entity.level(), FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER) / 100.0;
     }
  
     /**

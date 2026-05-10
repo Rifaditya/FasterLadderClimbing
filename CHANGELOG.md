@@ -1,5 +1,10 @@
 # Changelog
  
+## [1.0.0+build.6] - 2026-05-10
+ 
+### Fixed
+- Speed multiplier not applying: Switched from direct server-side GameRules access to `DynamicGameRuleManager`. This allows the speed boost to be correctly calculated on both Client and Server, fixing the issue where movement speed remained at vanilla levels.
+ 
 ## [1.0.0+build.5] - 2026-05-10
  
 ### Changed
