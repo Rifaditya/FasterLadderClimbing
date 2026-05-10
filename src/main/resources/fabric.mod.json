@@ -1,0 +1,12 @@
+{
+    "schemaVersion": 1,
+    "id": "fasterladderclimbing",
+    "version": "${version}",
+    "name": "Faster Ladder Climbing",
+    "description": "Makes climbing ladders and vines faster and configurable via GameRule.",
+    "authors": ["Dasik (Rifaditya)"],
+    "license": "GPL-3.0-or-later",
+    "entrypoints": { "main": ["net.instantgratification.fasterladderclimbing.FasterLadderClimbingFabric"] },
+    "mixins": ["fasterladderclimbing.mixins.json"],
+    "depends": { "fabricloader": ">=0.19.1", "minecraft": "*", "java": ">=25", "fabric-api": "*", "dasik-library": "*" }
+}

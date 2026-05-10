@@ -1,0 +1,4 @@
+{
+  "gamerule.ig_climbing_speed_multiplier": "Climbing Speed Multiplier",
+  "gamerule.ig_climbing_speed_multiplier.description": "Scales the movement speed of entities on ladders and vines. Integrated safety caps prevent uncontrollable launching at the top."
+}
