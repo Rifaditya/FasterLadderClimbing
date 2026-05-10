@@ -1,5 +1,12 @@
 # Changelog
  
+## [1.0.0+build.11] - 2026-05-10
+ 
+### Fixed
+- **Speed Not Changing**: Switched to a "Surgical" injection method that directly modifies vanilla velocity vectors. This ensures the speed boost is always applied, even if you are looking straight at the ladder.
+- **Refined Scaling**: Added a 20% base boost regardless of look angle, scaling up to 100% of the multiplier when looking vertically.
+- **Improved Defaults**: Set the default multiplier to 150 (1.5x) for an immediately noticeable improvement.
+ 
 ## [1.0.0+build.10] - 2026-05-10
  
 ### Fixed

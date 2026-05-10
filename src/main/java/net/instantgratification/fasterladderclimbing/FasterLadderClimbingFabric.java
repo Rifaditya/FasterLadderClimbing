@@ -30,7 +30,7 @@ public class FasterLadderClimbingFabric implements ModInitializer {
         }
  
         // Register GameRule via DasikLibrary
-        CLIMBING_SPEED_MULTIPLIER = DynamicGameRuleManager.integerRule(MOD_ID + ":climbing_speed_multiplier", CATEGORY, 100)
+        CLIMBING_SPEED_MULTIPLIER = DynamicGameRuleManager.integerRule(MOD_ID + ":climbing_speed_multiplier", CATEGORY, 150)
                 .range(0, 500)
                 .name("Climbing Speed Multiplier")
                 .description("Scales the movement speed of entities on ladders and vines. 100 is Vanilla, 500 is 5x speed.")
