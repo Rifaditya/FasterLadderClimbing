@@ -45,28 +45,32 @@ public abstract class LivingEntityMixin {
         return new Vec3(x, scaledY, z);
     }
  
-    /**
-     * Scales the sliding speed and vertical clamping in handleOnClimbable.
-     * Original constants: 0.15f and -0.15f
-     */
-    @ModifyConstant(method = "handleOnClimbable", constant = @Constant(floatValue = 0.15f))
-    private float fasterladderclimbing$scaleClampingPositive(float original) {
+    @Unique
+    private double fasterladderclimbing$getMultiplier() {
         LivingEntity entity = (LivingEntity) (Object) this;
-        int multiplierPercent = 100;
         if (entity.level() instanceof ServerLevel serverLevel) {
-            multiplierPercent = serverLevel.getGameRules().get(FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
+            return serverLevel.getGameRules().get(FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER) / 100.0;
         }
-        return (float) Math.min(original * (multiplierPercent / 100.0), 0.8);
+        return 1.0;
     }
  
-    @ModifyConstant(method = "handleOnClimbable", constant = @Constant(floatValue = -0.15f))
-    private float fasterladderclimbing$scaleClampingNegative(float original) {
-        LivingEntity entity = (LivingEntity) (Object) this;
-        int multiplierPercent = 100;
-        if (entity.level() instanceof ServerLevel serverLevel) {
-            multiplierPercent = serverLevel.getGameRules().get(FasterLadderClimbingFabric.CLIMBING_SPEED_MULTIPLIER);
-        }
-        return (float) Math.max(original * (multiplierPercent / 100.0), -0.8);
+    /**
+     * Scales the horizontal clamping in handleOnClimbable.
+     */
+    @Redirect(method = "handleOnClimbable", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/Mth;clamp(DDD)D"))
+    private double fasterladderclimbing$redirectHorizontalClamp(double value, double min, double max) {
+        double multiplier = fasterladderclimbing$getMultiplier();
+        return net.minecraft.util.Mth.clamp(value, min * multiplier, max * multiplier);
+    }
+ 
+    /**
+     * Scales the vertical downward clamping (sliding speed) in handleOnClimbable.
+     */
+    @Redirect(method = "handleOnClimbable", at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(DD)D"))
+    private double fasterladderclimbing$redirectVerticalMax(double a, double b) {
+        // b is the -0.15 constant
+        double multiplier = fasterladderclimbing$getMultiplier();
+        return Math.max(a, b * multiplier);
     }
  
     /**

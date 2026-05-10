@@ -1,5 +1,10 @@
 # Changelog
  
+## [1.0.0+build.3] - 2026-05-10
+ 
+### Changed
+- Refactored Mixin injection strategy: Replaced `ModifyConstant` with `Redirect` for all clamping logic. This ensures maximum compatibility with varying bytecode literal types (-0.15f vs -0.15).
+ 
 ## [1.0.0+build.2] - 2026-05-10
  
 ### Fixed
